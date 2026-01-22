@@ -16,4 +16,5 @@ notebooks/test.ipynb
 # environment variables
 .env
 
-movie_dataset/
+movie_dataset/*.csv
+
