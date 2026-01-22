@@ -258,20 +258,48 @@ movie-chatbot/
 
 ## 🐳 Docker Commands
 
-```bash
-# Start ChromaDB
-docker-compose up -d
+### Basic Commands
 
-# Stop ChromaDB
-docker-compose down
+| Command | Description |
+|---------|-------------|
+| `docker-compose up -d` | Start all services (ChromaDB, OpenTelemetry, Zipkin) |
+| `docker-compose down` | Stop all services |
+| `docker-compose logs -f chroma` | View ChromaDB logs |
+| `docker-compose logs -f otel-collector` | View OpenTelemetry logs |
+| `docker-compose ps` | Check running services |
 
-# View logs
-docker-compose logs -f chroma
+### Observability
 
-# Reset ChromaDB data (requires sudo on Linux)
-docker-compose down
-sudo rm -rf chroma_data/*
-docker-compose up -d
+This project includes **OpenTelemetry** and **Zipkin** for distributed tracing:
+
+| Service | URL | Description |
+|---------|-----|-------------|
+| ChromaDB | http://localhost:8000 | Vector store API |
+| Zipkin UI | http://localhost:9411 | Trace visualization |
+
+#### Viewing Traces
+
+1. Start the services:
+   ```bash
+   docker-compose up -d
+   ```
+
+2. Run some queries:
+   ```bash
+   python main.py
+   ```
+
+3. Open Zipkin at **http://localhost:9411**
+
+4. Click **"Run Query"** to see traces of your ChromaDB operations
+
+#### Architecture
+
+```
+┌─────────────┐     ┌──────────────────┐     ┌────────┐
+│   Python    │────▶│    ChromaDB      │────▶│  OTEL  │────▶│ Zipkin │
+│   App       │     │  (Vector Store)  │     │Collector│     │  UI    │
+└─────────────┘     └──────────────────┘     └────────┘     └────────┘
 ```
 
 ---
