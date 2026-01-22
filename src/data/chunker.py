@@ -30,9 +30,16 @@ def chunk_movie_plots(
         title = row["Title"]
         plot = row["Plot"]
 
+        text_with_title = f"[{title}] {plot}"
+
         plot_chunks = text_splitter.create_documents(
-            texts=[plot], metadatas=[{"title": title}]
+            texts=[text_with_title], metadatas=[{"title": title}]
         )
+
+        for chunk in plot_chunks:
+            if not chunk.page_content.startswith(f"[{title}]"):
+                chunk.page_content = f"[{title}] ...{chunk.page_content}"
+
         documents.extend(plot_chunks)
 
     return documents
