@@ -20,7 +20,7 @@ class RAGResponse(BaseModel):
     )
 
 
-def retrieve_relevant_chunks(query: str, k: int = 3) -> List[Document]:
+def retrieve_relevant_chunks(query: str, k: int = 5) -> List[Document]:
     """
     Retrieves the top-k relevant chunks from the vector store based on the query.
 
@@ -41,6 +41,13 @@ def query_rag(query: str) -> Dict[str, Any]:
     """
     docs = retrieve_relevant_chunks(query)
 
+    context_snippets = [
+        f"[{d.metadata.get('title', 'Unknown')}]: {d.page_content[:500]}..."
+        if len(d.page_content) > 500
+        else f"[{d.metadata.get('title', 'Unknown')}]: {d.page_content}"
+        for d in docs
+    ]
+
     context_text = "\n\n".join(
         [
             f"--- MOVIE: {d.metadata.get('title', 'Unknown')} ---\n{d.page_content}"
@@ -55,9 +62,13 @@ def query_rag(query: str) -> Dict[str, Any]:
         [
             (
                 "system",
-                "You are a movie expert. Answer the question based ONLY on the provided context snippets. "
-                "If the answer is not in the context, state that you do not know. "
-                "Return the output in the specified JSON format.",
+                """You are a movie expert assistant. Answer the user's question based ONLY on the provided context snippets.
+
+Rules:
+1. If a movie is mentioned by name in the question, look for that specific movie in the context.
+2. The 'contexts' field MUST contain the relevant plot snippets you used to form your answer.
+3. If the answer cannot be found in the context, say so clearly.
+4. Always reference the movie title in your answer.""",
             ),
             ("user", "Context:\n{context}\n\nQuestion: {question}"),
         ]
@@ -66,4 +77,9 @@ def query_rag(query: str) -> Dict[str, Any]:
     chain = prompt | structured_llm
     response = chain.invoke({"context": context_text, "question": query})
 
-    return response.model_dump()
+    # Ensure contexts are populated from retrieved docs if LLM didn't include them
+    result = response.model_dump()
+    if not result["contexts"] and docs:
+        result["contexts"] = context_snippets
+
+    return result
