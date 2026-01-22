@@ -18,15 +18,16 @@ class RAGResponse(BaseModel):
     )
 
 
-def retrieve_relevant_documents(question: str, k: int = 5) -> List[Document]:
-    """Retrieve relevant documents from the vector store based on the user's question.
+def retrieve_relevant_chunks(query: str, k: int = 5) -> List[Document]:
+    """
+    Retrieves the top-k relevant chunks from the vector store based on the query.
 
     Args:
-        question: The user's input question.
-        k: Number of top documents to retrieve.
-
+        query: The user's question or input string.
+        k: Number of top relevant chunks to retrieve.
     Returns:
-        List of retrieved Document objects.
+        List of Document objects representing the most relevant chunks.
     """
     vector_store = get_vector_store()
-    return vector_store.similarity_search(query=question, k=k)
+    relevant_docs = vector_store.similarity_search(query, k=k)
+    return relevant_docs
