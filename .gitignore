@@ -9,5 +9,10 @@ wheels/
 # Virtual environments
 .venv
 
-#ruff cache
+# ruff cache
 .ruff_cache/
+
+# environment variables
+.env
+
+movie_dataset/
