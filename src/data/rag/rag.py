@@ -10,13 +10,15 @@ class RAGResponse(BaseModel):
     """Structured output for the RAG system."""
 
     answer: str = Field(
-        description="The natural language answer to the user's question, referencing specific movies."
+        description="A concise, natural language answer that directly addresses the question. "
+        "Include the movie title (*Movie Title*) and summarize the relevant plot details."
     )
     contexts: List[str] = Field(
-        description="Exact snippets from the retrieved movie plots that support the answer."
+        description="The exact plot snippets from retrieved documents that were used to form the answer."
     )
     reasoning: str = Field(
-        description="A brief explanation of how the retrieved context was used to derive the answer"
+        description="A brief explanation of the search and reasoning process: "
+        "what the question asked for, what was found, and how the answer was formed."
     )
 
 
@@ -42,9 +44,9 @@ def query_rag(query: str) -> Dict[str, Any]:
     docs = retrieve_relevant_chunks(query)
 
     context_snippets = [
-        f"[{d.metadata.get('title', 'Unknown')}]: {d.page_content[:500]}..."
-        if len(d.page_content) > 500
-        else f"[{d.metadata.get('title', 'Unknown')}]: {d.page_content}"
+        f"{d.metadata.get('title', 'Unknown')}: {d.page_content[:300]}..."
+        if len(d.page_content) > 300
+        else f"{d.metadata.get('title', 'Unknown')}: {d.page_content}"
         for d in docs
     ]
 
@@ -62,13 +64,18 @@ def query_rag(query: str) -> Dict[str, Any]:
         [
             (
                 "system",
-                """You are a movie expert assistant. Answer the user's question based ONLY on the provided context snippets.
+                """You are a movie expert assistant. Answer questions using ONLY the provided context.
 
-Rules:
-1. If a movie is mentioned by name in the question, look for that specific movie in the context.
-2. The 'contexts' field MUST contain the relevant plot snippets you used to form your answer.
-3. If the answer cannot be found in the context, say so clearly.
-4. Always reference the movie title in your answer.""",
+Output Format:
+- **answer**: A concise summary that directly answers the question. Use *italics* for movie titles. Combine relevant plot details into a clear, informative response.
+- **contexts**: Include the specific plot excerpts you referenced (can be shortened).
+- **reasoning**: Briefly explain: (1) what the user asked, (2) what you found in the context, (3) how you formed the answer.
+
+Guidelines:
+- If the user asks about a specific movie, focus on that movie's plot.
+- If the user asks a general question (e.g., "movies about AI"), find relevant movies and summarize.
+- If the information isn't in the context, clearly state that.
+- Keep answers informative but concise.""",
             ),
             ("user", "Context:\n{context}\n\nQuestion: {question}"),
         ]
@@ -77,7 +84,6 @@ Rules:
     chain = prompt | structured_llm
     response = chain.invoke({"context": context_text, "question": query})
 
-    # Ensure contexts are populated from retrieved docs if LLM didn't include them
     result = response.model_dump()
     if not result["contexts"] and docs:
         result["contexts"] = context_snippets
