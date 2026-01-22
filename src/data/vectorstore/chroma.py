@@ -15,6 +15,7 @@ def get_vector_store() -> Chroma:
     """
     Connects to the ChromaDB Docker instance and returns a LangChain vector store wrapper.
     """
+    # Initialize the HTTP client to connect to the running Docker container
     client = chromadb.HttpClient(host=CHROMA_HOST, port=CHROMA_PORT)
 
     embedding_function = get_embedding_function()
@@ -37,6 +38,7 @@ def add_documents_to_store(documents: List[Document]) -> None:
 
     vector_store = get_vector_store()
 
+    # Create unique IDs for each chunk to ensure idempotent additions
     ids = [str(uuid.uuid4()) for _ in documents]
 
     print(
