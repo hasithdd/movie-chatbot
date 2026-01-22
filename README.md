@@ -27,7 +27,7 @@ Before you begin, ensure you have the following installed:
 
 ### Installing uv
 
-If you don't have `uv` installed, follow the official installation guide:
+If you don't have `uv` installed (https://docs.astral.sh/uv/) , follow the official installation guide:
 
 **macOS/Linux:**
 ```bash
@@ -82,7 +82,51 @@ This will:
 - Create a virtual environment in `.venv/`
 - Install all dependencies from `uv.lock`
 
-### 3. Set Up Environment Variables
+### 3. Download the Dataset
+
+This project uses the **Wikipedia Movie Plots** dataset from Kaggle.
+
+#### Option A: Download from Kaggle (Recommended)
+
+1. Go to [Wikipedia Movie Plots Dataset](https://www.kaggle.com/datasets/jrobischon/wikipedia-movie-plots)
+2. Click **"Download"** (requires free Kaggle account)
+3. Extract the downloaded ZIP file
+4. Copy `wiki_movie_plots_deduped.csv` to the `movie_dataset/` folder:
+
+```bash
+# After extracting the download
+cp /path/to/wiki_movie_plots_deduped.csv movie_dataset/
+```
+
+#### Option B: Using Kaggle CLI
+
+If you have the Kaggle CLI installed and configured:
+
+```bash
+# Install Kaggle CLI (if not already installed)
+pip install kaggle
+
+# Download the dataset
+kaggle datasets download -d jrobischon/wikipedia-movie-plots -p movie_dataset/
+
+# Extract the dataset
+unzip movie_dataset/wikipedia-movie-plots.zip -d movie_dataset/
+```
+
+> 📖 **Kaggle CLI Setup:** [https://www.kaggle.com/docs/api](https://www.kaggle.com/docs/api)
+
+#### Verify Dataset
+
+After downloading, your `movie_dataset/` folder should contain:
+
+```
+movie_dataset/
+├── wiki_movie_plots_deduped.csv   # Required - Main dataset (~35K movies)
+├── processed_movie_plots.csv       # Generated after first run
+└── README.md
+```
+
+### 4. Set Up Environment Variables
 
 Copy the example environment file and add your Gemini API key:
 
@@ -96,7 +140,7 @@ Edit `.env` and replace the placeholder with your actual API key:
 GOOGLE_API_KEY=your_actual_gemini_api_key_here
 ```
 
-### 4. Start ChromaDB (Vector Store)
+### 5. Start ChromaDB (Vector Store)
 
 Start the ChromaDB Docker container:
 
@@ -112,7 +156,7 @@ docker-compose ps
 
 You should see the `chroma` service running on port `8000`.
 
-### 5. Ingest Data
+### 6. Ingest Data
 
 Load the movie plots, chunk them, generate embeddings, and store in ChromaDB:
 
@@ -126,7 +170,7 @@ This will:
 - Generate embeddings using `all-MiniLM-L6-v2`
 - Store embeddings in ChromaDB
 
-### 6. Start Querying
+### 7. Start Querying
 
 Run the interactive query loop:
 
