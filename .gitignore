@@ -5,6 +5,7 @@ build/
 dist/
 wheels/
 *.egg-info
+notebooks/test.ipynb
 
 # Virtual environments
 .venv
@@ -15,4 +16,5 @@ wheels/
 # environment variables
 .env
 
-movie_dataset/
+movie_dataset/*.csv
+
